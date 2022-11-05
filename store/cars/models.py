@@ -1,3 +1,38 @@
 from django.db import models
+import uuid
 
-# Create your models here.
+class Cars(models.Model):
+
+    id = models.AutoField(
+        primary_key=True,
+        null=False,
+        blank=False)
+
+    name = models.CharField(
+        max_length=256,
+        null=False,
+        blank=False)
+
+    brand = models.CharField(
+        max_length=32,
+        null=False,
+        blank=False
+    )
+
+    model = models.CharField(
+        max_length=32,
+        null=False,
+        blank=False
+    ) 
+
+    slug = models.CharField(
+        max_length=256,
+        null=False,
+        blank=False
+    )
+
+    photo = models.CharField(
+        max_length=1024,
+        null=False,
+        blank=True
+    )
