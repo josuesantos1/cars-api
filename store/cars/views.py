@@ -16,6 +16,12 @@ class cars(APIView):
         except Cars.DoesNotExist:
             return None
 
+    def me(self, owner):
+
+        cars = Cars.objects.all().filter(owner=owner.get('id')).order_by('price').values()
+        serializer = CarsSerializer(cars, many=True)
+        return serializer.data
+
     def post(self, request):
         id = request.META.get('HTTP_AUTHORIZATION')
 
@@ -24,10 +30,7 @@ class cars(APIView):
         if not token:
             return Response({'message': 'UNAUTORIZER'}, status=status.HTTP_401_UNAUTHORIZED)
 
-
-
         name = request.data.get('name')
-
 
         data = {
             'name': name,
@@ -49,6 +52,15 @@ class cars(APIView):
 
     def get(self, request):
         id = request.GET.get('id')
+        me = request.GET.get('me')
+        token = request.META.get('HTTP_AUTHORIZATION')
+
+        if me:
+            result = Auth.verify_jwt(token.replace("Bearer ", ""))
+            if not result: 
+                return Response({'message': 'UNAUTORIZER'}, status=status.HTTP_401_UNAUTHORIZED)
+            
+            return Response(self.me(result))
 
         if not id:
             cars = Cars.objects.all().order_by('price').values()
