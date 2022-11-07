@@ -16,6 +16,13 @@ class cars(APIView):
         except Cars.DoesNotExist:
             return None
 
+    def get_car_auth(self, id, owner):
+        print(id, owner)
+        try:
+            return Cars.objects.get(pk=id, owner=owner)
+        except Cars.DoesNotExist:
+            return None
+
     def me(self, owner):
 
         cars = Cars.objects.all().filter(owner=owner.get('id')).order_by('price').values()
@@ -78,8 +85,17 @@ class cars(APIView):
 
     def patch(self, request):
         id = request.GET.get('id')
-        
-        cars = self.get_cars(id)
+        token = request.META.get('HTTP_AUTHORIZATION')
+
+        if not token:
+            return Response({'message': 'UNAUTORIZER'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        result = Auth.verify_jwt(token.replace("Bearer ", ""))
+
+        if not result: 
+            return Response({'message': 'UNAUTORIZER'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        cars = self.get_car_auth(id, result.get('id'))
 
         if not cars:
             return Response("not found", status=status.HTTP_404_NOT_FOUND)
