@@ -1,3 +1,5 @@
+import random
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -5,6 +7,7 @@ from rest_framework import status
 from .serializer import CarsSerializer
 from .models import Cars
 
+from users.auth import Auth
 
 class cars(APIView):    
     def get_cars(self, cars_id):
@@ -14,13 +17,26 @@ class cars(APIView):
             return None
 
     def post(self, request):
+        id = request.META.get('HTTP_AUTHORIZATION')
+
+        token = Auth.verify_jwt(id.replace("Bearer ", ""))
+
+        if not token:
+            return Response({'message': 'UNAUTORIZER'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+
+        name = request.data.get('name')
+
+
         data = {
-            'name': request.data.get('name'),
+            'name': name,
             'brand': request.data.get('brand'),
             'model': request.data.get('model'),
-            'slug': request.data.get('slug'),
+            'slug': name.replace(" ", "_") + str(+ random.randint(100, 999)),
             'photo': request.data.get('photo'),
-            'price': request.data.get('price')
+            'price': request.data.get('price'),
+            'owner': token.get('id')
         }
 
         serializer = CarsSerializer(data=data)
