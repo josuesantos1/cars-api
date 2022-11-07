@@ -6,7 +6,7 @@ import jwt, datetime
 
 from .serializer import UsersSerializer
 from .models import Users
-
+from .auth import Auth
 
 class users(APIView):
     def get_users(self, users_id):
@@ -16,29 +16,6 @@ class users(APIView):
         except Users.DoesNotExist:
             return None
 
-    def user_exists(self, users_id):
-        try:
-            Users.objects.get(email=users_id)
-            return True
-        except Users.DoesNotExist:
-            return None
-
-    def verify_jwt(self, token):
-        try:
-            return jwt.decode(token, 'password', algorithms='HS256')
-        except:
-            return None
-
-    def create_jwt(self, user_id):
-        tnow = datetime.datetime.utcnow()
-        payload = {
-            'id': user_id,
-            'exp': tnow + datetime.timedelta(hours=3),
-            'iat': tnow
-        }
-
-        return jwt.encode(payload, 'password', algorithm='HS256').decode('utf-8')
-
     def post(self, request):
         data = {
             'name': request.data.get('name'),
@@ -46,7 +23,7 @@ class users(APIView):
             'password': request.data.get('password')
         }
 
-        if self.user_exists(request.data.get('email')): 
+        if Auth.user_exists(users_id=request.data.get('email')): 
             return Response({'message': 'already exists user'})
 
         serializer = UsersSerializer(data=data)
@@ -54,7 +31,7 @@ class users(APIView):
         if serializer.is_valid():
             serializer.save()
 
-            token = self.create_jwt(data.get('email'))
+            token = Auth.create_jwt(data.get('email'))
             
             response = Response() #({'TOKEN': token}, status=status.HTTP_201_CREATED)
             response.set_cookie(
@@ -78,8 +55,8 @@ class users(APIView):
         if not id:
             return Response("UNAUTHORIZED", status=status.HTTP_401_UNAUTHORIZED)
 
-        email = self.verify_jwt(id.replace("Bearer ", ""))
-        print(email)
+        email = Auth.verify_jwt(id.replace("Bearer ", ""))
+
         if not email:
             return Response("UNAUTHORIZED", status=status.HTTP_401_UNAUTHORIZED)
 
@@ -98,7 +75,7 @@ class users(APIView):
         if not id:
             return Response("UNAUTHORIZED", status=status.HTTP_401_UNAUTHORIZED)
 
-        email = self.verify_jwt(id.replace("Bearer ", ""))
+        email = Auth.verify_jwt(id.replace("Bearer ", ""))
 
         if not email:
             return Response("UNAUTHORIZED", status=status.HTTP_401_UNAUTHORIZED)
@@ -127,7 +104,7 @@ class users(APIView):
         if not id:
             return Response("UNAUTHORIZED", status=status.HTTP_401_UNAUTHORIZED)
 
-        email = self.verify_jwt(id.replace("Bearer ", ""))
+        email = Auth.verify_jwt(id.replace("Bearer ", ""))
 
         print(email)
 
@@ -151,32 +128,9 @@ class users(APIView):
 
 
 class Login(APIView):
-    def verify_jwt(self, token):
-        try:
-            return jwt.decode(token, 'password', algorithms=['HS256'])
-        except:
-            return None
-
-    def create_jwt(self, user_id):
-        tnow = datetime.datetime.utcnow()
-        payload = {
-            'id': user_id,
-            'exp': tnow + datetime.timedelta(hours=3),
-            'iat': tnow
-        }
-
-        return jwt.encode(payload, 'password', algorithm='HS256').decode('utf-8')
-
     def get_users(self, users_id):
         try:
             return Users.objects.get(email=users_id)
-        except Users.DoesNotExist:
-            return None
-
-    def user_exists(self, users_id):
-        try:
-            Users.objects.get(email=users_id)
-            return True
         except Users.DoesNotExist:
             return None
 
@@ -188,7 +142,7 @@ class Login(APIView):
 
         email = data.get('email')
 
-        if not self.user_exists(email):
+        if not Auth.user_exists(email):
             return Response({'message': 'user not found'})
 
         user = self.get_users(email)
@@ -196,7 +150,7 @@ class Login(APIView):
         if not user:
             return Response({'message': 'wrong email or password'})
 
-        token = self.create_jwt(email)
+        token = Auth.create_jwt(email)
 
         if not token:
             return Response("UNAUTHORIZED", status=status.HTTP_401_UNAUTHORIZED)
