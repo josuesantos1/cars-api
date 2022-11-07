@@ -2,7 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-import jwt, datetime
+import crypt, os
+from hmac import compare_digest
 
 from .serializer import UsersSerializer
 from .models import Users
@@ -20,7 +21,7 @@ class users(APIView):
         data = {
             'name': request.data.get('name'),
             'email': request.data.get('email'),
-            'password': request.data.get('password')
+            'password': crypt.crypt(request.data.get('password'), str(os.getenv('TOKEN_PASS'))),
         }
 
         if Auth.user_exists(users_id=request.data.get('email')): 
@@ -61,7 +62,7 @@ class users(APIView):
             return Response("UNAUTHORIZED", status=status.HTTP_401_UNAUTHORIZED)
 
         user = self.get_users(email.get('id'))
-        print(email)
+
         if not user:
             return Response("not found", status=status.HTTP_404_NOT_FOUND)
 
@@ -149,6 +150,9 @@ class Login(APIView):
 
         if not user:
             return Response({'message': 'wrong email or password'})
+
+        if not compare_digest(user.password, data.get('password')):
+            return  Response({'message': 'wrong email or password'})
 
         token = Auth.create_jwt(email)
 
