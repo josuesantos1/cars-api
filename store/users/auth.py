@@ -11,7 +11,14 @@ class Auth():
 
     def verify_jwt(token):
         try:
-            return jwt.decode(token, str(os.getenv('TOKEN_PASS')), algorithms='HS256')
+            payload = jwt.decode(token, str(os.getenv('TOKEN_PASS')), algorithms='HS256')
+
+            exp = payload.get('exp')
+            exp_to_date = datetime.datetime.fromtimestamp(exp).strftime("%A, %B %d, %Y %I:%M:%S")
+            if exp_to_date < datetime.datetime.now().strftime("%A, %B %d, %Y %I:%M:%S"):
+                return None
+
+            return payload
         except:
             return None
 
@@ -19,7 +26,7 @@ class Auth():
         tnow = datetime.datetime.utcnow()
         payload = {
             'id': user_id,
-            'exp': tnow + datetime.timedelta(hours=3),
+            'exp': tnow + datetime.timedelta(hours=5),
             'iat': tnow
         }
 
