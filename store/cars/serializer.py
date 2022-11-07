@@ -4,6 +4,6 @@ from .models import Cars
 class CarsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cars
-        fields = ["id", "name", "brand", "model", "slug", "photo", "price"]
+        fields = ["id", "name", "brand", "model", "slug", "photo", "price", "owner"]
 
 

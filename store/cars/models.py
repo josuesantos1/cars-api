@@ -43,3 +43,9 @@ class Cars(models.Model):
         blank=False,
         default=0
     )
+
+    owner = models.CharField(
+        max_length=256,
+        null=True,
+        blank=False,
+    )
