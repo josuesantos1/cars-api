@@ -36,3 +36,10 @@ class Cars(models.Model):
         null=False,
         blank=True
     )
+
+    price = models.FloatField(
+        max_length=32,
+        null=False,
+        blank=False,
+        default=0
+    )
