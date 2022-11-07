@@ -6,7 +6,7 @@ from .serializer import CarsSerializer
 from .models import Cars
 
 
-class cars(APIView):
+class cars(APIView):    
     def get_cars(self, cars_id):
         try:
             return Cars.objects.get(pk=cars_id)
@@ -19,9 +19,9 @@ class cars(APIView):
             'brand': request.data.get('brand'),
             'model': request.data.get('model'),
             'slug': request.data.get('slug'),
-            'photo': request.data.get('photo')
+            'photo': request.data.get('photo'),
+            'price': request.data.get('price')
         }
-
 
         serializer = CarsSerializer(data=data)
 
@@ -35,8 +35,8 @@ class cars(APIView):
         id = request.GET.get('id')
 
         if not id:
-            todos = Cars.objects.all()
-            serializer = CarsSerializer(todos, many=True)
+            cars = Cars.objects.all().order_by('price').values()
+            serializer = CarsSerializer(cars, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         cars = self.get_cars(id)
@@ -74,7 +74,6 @@ class cars(APIView):
     def delete(self, request):
         id = request.GET.get('id')
         cars = self.get_cars(id)
-        print(id)
 
         if not cars:
             return Response(
@@ -82,8 +81,7 @@ class cars(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        serializer = CarsSerializer(cars)
-        serializer.delete()
+        cars.delete()
 
         return Response(
             "car deleted!",
