@@ -13,7 +13,7 @@ from uploader.uploader import Uploader
 class cars(APIView):    
     def get_cars(self, cars_id):
         try:
-            car = Cars.objects.get(pk=cars_id)
+            car = Cars.objects.get(slug=cars_id)
             photo = car.photo
             car.photo = Uploader.get_file(photo)
             return car
@@ -36,7 +36,7 @@ class cars(APIView):
 
     def get_car_auth(self, id, owner):
         try:
-            car = Cars.objects.get(pk=id, owner=owner)
+            car = Cars.objects.get(slug=id, owner=owner)
             photo = car.photo
             car.photo = Uploader.get_file(photo)
             return car
@@ -85,6 +85,7 @@ class cars(APIView):
 
         if me:
             result = Auth.verify_jwt(token.replace("Bearer ", ""))
+
             if not result: 
                 return Response({'message': 'UNAUTORIZER'}, status=status.HTTP_401_UNAUTHORIZED)
             
