@@ -8,18 +8,38 @@ from .serializer import CarsSerializer
 from .models import Cars
 
 from users.auth import Auth
+from uploader.uploader import Uploader
 
 class cars(APIView):    
     def get_cars(self, cars_id):
         try:
-            return Cars.objects.get(pk=cars_id)
+            car = Cars.objects.get(pk=cars_id)
+            photo = car.photo
+            car.photo = Uploader.get_file(photo)
+            return car
         except Cars.DoesNotExist:
             return None
 
+    def url_file(self, car):
+        photo = Uploader.get_file(car.get('photo'))
+        car = {
+            'name': car.get('name'),
+            'brand': car.get('brand'),
+            'model': car.get('model'),
+            'slug': car.get('slug'),
+            'photo': photo,
+            'price': car.get('price'),
+            'owner': car.get('owner')
+        }
+
+        return car 
+
     def get_car_auth(self, id, owner):
-        print(id, owner)
         try:
-            return Cars.objects.get(pk=id, owner=owner)
+            car = Cars.objects.get(pk=id, owner=owner)
+            photo = car.photo
+            car.photo = Uploader.get_file(photo)
+            return car
         except Cars.DoesNotExist:
             return None
 
@@ -27,7 +47,8 @@ class cars(APIView):
 
         cars = Cars.objects.all().filter(owner=owner.get('id')).order_by('price').values()
         serializer = CarsSerializer(cars, many=True)
-        return serializer.data
+        
+        return map(self.url_file, serializer.data)
 
     def post(self, request):
         id = request.META.get('HTTP_AUTHORIZATION')
@@ -72,7 +93,8 @@ class cars(APIView):
         if not id:
             cars = Cars.objects.all().order_by('price').values()
             serializer = CarsSerializer(cars, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            
+            return Response(map(self.url_file, serializer.data), status=status.HTTP_200_OK)
 
         cars = self.get_cars(id)
         
