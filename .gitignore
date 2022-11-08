@@ -1,5 +1,4 @@
-env/lib/
-env/share
+env
 **/__pycache__
 terraform.tfstate.backup
 terraform.tfstate
