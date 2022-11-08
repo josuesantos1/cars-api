@@ -16,8 +16,8 @@ class Auth():
 
             exp = payload.get('exp')
             exp_to_date = datetime.datetime.fromtimestamp(exp).strftime("%A, %B %d, %Y %I:%M:%S")
-            if exp_to_date > datetime.datetime.now().strftime("%A, %B %d, %Y %I:%M:%S"):
-                print(exp_to_date)
+
+            if datetime.datetime.now().strftime("%A, %B %d, %Y %I:%M:%S") > exp_to_date:
                 return None
 
             return payload
