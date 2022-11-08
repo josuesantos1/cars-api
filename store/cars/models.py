@@ -27,7 +27,7 @@ class Cars(models.Model):
 
     slug = models.CharField(
         max_length=256,
-        null=False,
+        null=True,
         blank=False
     )
 
