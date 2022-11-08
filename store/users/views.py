@@ -52,7 +52,6 @@ class users(APIView):
     def get(self, request):
         id = request.META.get('HTTP_AUTHORIZATION')
 
-        print(id)
         if not id:
             return Response("UNAUTHORIZED", status=status.HTTP_401_UNAUTHORIZED)
 
@@ -144,15 +143,15 @@ class Login(APIView):
         email = data.get('email')
 
         if not Auth.user_exists(email):
-            return Response({'message': 'user not found'})
+            return Response({'message': 'user not found'}, status=status.HTTP_401_UNAUTHORIZED)
 
         user = self.get_users(email)
 
         if not user:
-            return Response({'message': 'wrong email or password'})
+            return Response({'message': 'wrong email or password'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        if not compare_digest(user.password, data.get('password')):
-            return  Response({'message': 'wrong email or password'})
+        if not compare_digest(user.password, crypt.crypt(data.get('password'), str(os.getenv('TOKEN_PASS')))):
+            return  Response({'message': 'wrong email or password'}, status=status.HTTP_401_UNAUTHORIZED)
 
         token = Auth.create_jwt(email)
 
